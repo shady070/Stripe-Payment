@@ -5,12 +5,8 @@ import convertToSubcurrency from "@/lib/convertToSubcurrency";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
-const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY;
-if (!stripePublicKey) {
-  throw new Error("NEXT_PUBLIC_STRIPE_PUBLIC_KEY is not defined");
-}
-
-const stripePromise = loadStripe(stripePublicKey);
+const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || null;
+const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
 
 export default function Home() {
   const amount = 49.99;
@@ -25,16 +21,20 @@ export default function Home() {
         </h2>
       </div>
 
-      <Elements
-        stripe={stripePromise}
-        options={{
-          mode: "payment",
-          amount: convertToSubcurrency(amount),
-          currency: "usd",
-        }}
-      >
-        <CheckoutPage amount={amount} />
-      </Elements>
+      {stripePromise ? (
+        <Elements
+          stripe={stripePromise}
+          options={{
+            mode: "payment",
+            amount: convertToSubcurrency(amount),
+            currency: "usd",
+          }}
+        >
+          <CheckoutPage amount={amount} />
+        </Elements>
+      ) : (
+        <div className="text-red-500">Stripe configuration is missing.</div>
+      )}
     </main>
   );
 }
